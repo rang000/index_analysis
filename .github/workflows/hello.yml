@@ -2,10 +2,12 @@ name: Chapter3
 on: push
 env: 
   FORMAT_FUNC: ${{format('{0}, {1}.', 'Hi', 'world')}}
+  VARS_JSON: ${{toJSON(vars)}}
 jobs: 
-  hello:
+  generate-func:
     runs-on: ubuntu-latest
     steps:
       - run: echo "Hello world"
       - uses: actions/checkout@v4
-      - run: printenv 
+      - run: printenv | grep '_FUNC'
+      - run: echo VARS "${VARS_JSON} HASH ${{hashFiles('.github/workflows/*.yml')}}"
