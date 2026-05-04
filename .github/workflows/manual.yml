@@ -1,5 +1,5 @@
 name: manual
-on:
+on: 
     workflow_dispatch:
         inputs:
             greeting:
@@ -15,10 +15,17 @@ on:
                     - error
                 required: false
 jobs:
-    run:
+    manual-run:
         runs-on: ubuntu-latest
+        env: 
+            BRANCH: feature-gh-actions
         steps:
             - run: echo "${{inputs.greeting}}"
             - run: ls
             - run: pwd
-            - run: 'echo "contexts: ${{ github.actor }}"'
+            - run: 'echo "actor: ${{github.actor}}, tmp_path: ${{runner.temp}}"'
+            - run: echo "${{BRANCH}}"
+            - uses: actions/checkout@v4
+              with: 
+                ref: ${{env.BRANCH}}
+
