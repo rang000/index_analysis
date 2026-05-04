@@ -1,5 +1,5 @@
-def valid_plus():
+def test_valid_plus():
     assert 1 + 1 == 2
 
-def valid_minus():
+def test_valid_minus():
     assert 1 - 1 == 0
