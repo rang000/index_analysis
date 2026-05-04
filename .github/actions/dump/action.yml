@@ -15,6 +15,7 @@ runs:
   using: composite
   steps:
     - run: printenv |sort
+      name: show envlist
       shell: bash
     - run: echo "${CONTEXT}"
       if: ${{inputs.enable-context == 'true'}}
