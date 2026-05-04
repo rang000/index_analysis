@@ -34,9 +34,11 @@ jobs:
           echo "::notice::This is an notice."
       - name: create job summary
         run: |
-          echo "# さまり :rocket:" >> "${GITHUB_STEP_SUMMARY}"
-          echo "- first itme">> "${GITHUB_STEP_SUMMARY}"
-          echo "- second itme">> "${GITHUB_STEP_SUMMARY}"
+          {
+            echo "# さまり :rocket:" 
+            echo "- first itme"
+            echo "- second itme"
+          } >> "${GITHUB_STEP_SUMMARY}"
   generate-func:
     runs-on: ubuntu-latest
     needs: [summary-report]
