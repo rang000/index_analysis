@@ -1,4 +1,5 @@
 name: Chapter3
+run-name: Run by @${GITHUB_ACTOR}
 on: push
 env: 
   FORMAT_FUNC: ${{format('{0}, {1}.', 'Hi', 'world')}}
@@ -13,8 +14,12 @@ jobs:
       - run: echo VARS "${VARS_JSON} HASH ${HASH}"
         env: 
           HASH:  ${{hashFiles('.github/workflows/*.yml')}}
+      # share vars
+      - run: export TMP="hoge"
+      - run: echo "${TMP}"
       # conditional branch
-      - run : exit 1
+      - name: intentionally fail
+        run : exit 1
       - run: echo "failuer without conditional"
       - run: echo "failuer with conditional"
         if: ${{failure()}}
