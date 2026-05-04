@@ -1,5 +1,5 @@
 name: Chapter3
-run-name: Run by @${GITHUB_ACTOR}
+run-name: Run by @"${GITHUB_ACTOR}"
 on: push
 env: 
   FORMAT_FUNC: ${{format('{0}, {1}.', 'Hi', 'world')}}
@@ -17,6 +17,13 @@ jobs:
       # share vars
       - run: export TMP="hoge"
       - run: echo "${TMP}"
+      - name: share vars
+        id: source
+        run: echo "result=Hello" >> "${GITHUB_OUTPUT}"
+      - run: echo "${{steps.*.ouputs}}"
+      - run: echo "${RESULT}"
+        env: 
+          RESULT: ${{steps.source.outputs.result}}
       # conditional branch
       - name: intentionally fail
         run : exit 1
