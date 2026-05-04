@@ -10,4 +10,12 @@ jobs:
       - run: echo "Hello world"
       - uses: actions/checkout@v4
       - run: printenv | grep '_FUNC'
-      - run: echo VARS "${VARS_JSON} HASH ${{hashFiles('.github/workflows/*.yml')}}"
+      - run: echo VARS "${VARS_JSON} HASH ${HASH}"
+        env: 
+          HASH:  ${{hashFiles('.github/workflows/*.yml')}}
+      # conditional branch
+      - run : exit 1
+      - run: echo "failuer without conditional"
+      - run: echo "failuer with conditional"
+        if: ${{failure()}}
+      
