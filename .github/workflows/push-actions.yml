@@ -12,13 +12,16 @@ concurrency:                                      # 自動キャンセル
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs: 
-  generate-func:
+  summary-report:
     runs-on: ubuntu-latest
+    environment: test
+    env: 
+      USERNAME: ${{vars.USERNAME}}
     timeout-minutes: 3
     steps:
       - name: show group log
         run: |
-          echo "hoge"
+          echo "${USERNAME}" # test environment
           pwd
           echo "::group::Show envs"
           printenv
@@ -34,7 +37,11 @@ jobs:
           echo "# さまり :rocket:" >> "${GITHUB_STEP_SUMMARY}"
           echo "- first itme">> "${GITHUB_STEP_SUMMARY}"
           echo "- second itme">> "${GITHUB_STEP_SUMMARY}"
-      # - run: echo "hoge"
+  generate-func:
+    runs-on: ubuntu-latest
+    needs: [summary-report]
+    steps:
+      - run: echo "hoge"
       # # Chapter3
       # - run: echo "Hello world"
       # - uses: actions/checkout@v4
