@@ -14,18 +14,28 @@ on:
                     - warn
                     - error
                 required: false
+env: 
+    BRANCH: feature-gh-actions
+    SEED: ${{vars.SEED}} # Variablesからの参照
+    PASSWORD: ${{secrets.TMP_SECRETS}}
 jobs:
     manual-run:
         runs-on: ubuntu-latest
-        env: 
-            BRANCH: feature-gh-actions
         steps:
             - run: echo "${{inputs.greeting}}"
             - run: ls
             - run: pwd
-            - run: 'echo "actor: ${{github.actor}}, tmp_path: ${{runner.temp}}"'
+            - run: 'echo actor: "${{github.actor}}", tmp_path: "${{runner.temp}}"'
             - run: echo "${BRANCH}"
+            - run: echo "${GITHUB_PATH}"
+            - run: echo "${GITHUB_ACTION}"
             - uses: actions/checkout@v4
               with: 
-                ref: ${{env.BRANCH}}
+                ref: ${BRANCH}
+            - run: ls
+            - run: pwd
+            # Varibles
+            - run: echo "${SEED}"
+            # Secrets
+            - run: echo "${PASSWORD} ${PASSWORD:0:1} ${PASSWORD#?}"
 
