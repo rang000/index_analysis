@@ -1,5 +1,5 @@
 name: push-test
-run-name: Run by @${{ github.actor }}
+run-name: push action by @${{ github.actor }}
 on: push
 env: 
   FORMAT_FUNC: ${{format('{0}, {1}.', 'Hi', 'world')}}
@@ -8,13 +8,18 @@ jobs:
   generate-func:
     runs-on: ubuntu-latest
     steps:
-      - run: |
+      - name: show group log
+        run: |
           echo "hoge"
           pwd
           echo "::group::Show envs"
           printenv
           echo "::endgroup::"
           echo "::debug:: this is debug comment"
+      - run: |
+          echo "::error::This is an error."
+          echo "::waring::This is an warning."
+          echo "::ernoticeror::This is an notice."
       # - run: echo "hoge"
       # # Chapter3
       # - run: echo "Hello world"
