@@ -4,5 +4,5 @@ jobs:
   hello:
     runs-on: ubuntu-latest
     steps:
-      - run: ehco "Hello world"
+      - run: echo "Hello world"
       - uses: actions/checkout@v4
