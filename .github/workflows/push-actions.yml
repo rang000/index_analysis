@@ -4,9 +4,17 @@ on: push
 env: 
   FORMAT_FUNC: ${{format('{0}, {1}.', 'Hi', 'world')}}
   VARS_JSON: ${{toJSON(vars)}}
+
+defaults:                                         # デフォルトシェル
+  run:
+    shell: bash
+concurrency:                                      # 自動キャンセル
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs: 
   generate-func:
     runs-on: ubuntu-latest
+    timeout-minutes: 3
     steps:
       - name: show group log
         run: |
@@ -16,10 +24,16 @@ jobs:
           printenv
           echo "::endgroup::"
           echo "::debug:: this is debug comment"
-      - run: |
+      - name: show annotation
+        run: |
           echo "::error::This is an error."
           echo "::warning::This is an warning."
           echo "::notice::This is an notice."
+      - name: create job summary
+        run: |
+          echo "# さまり :rocket:" >> "${GITHUB_STEP_SUMMARY}"
+          echo "- first itme">> "${GITHUB_STEP_SUMMARY}"
+          echo "- second itme">> "${GITHUB_STEP_SUMMARY}"
       # - run: echo "hoge"
       # # Chapter3
       # - run: echo "Hello world"
