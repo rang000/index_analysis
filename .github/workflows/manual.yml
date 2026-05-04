@@ -24,7 +24,7 @@ jobs:
             - run: ls
             - run: pwd
             - run: 'echo "actor: ${{github.actor}}, tmp_path: ${{runner.temp}}"'
-            - run: echo "${{BRANCH}}"
+            - run: echo "${BRANCH}"
             - uses: actions/checkout@v4
               with: 
                 ref: ${{env.BRANCH}}
