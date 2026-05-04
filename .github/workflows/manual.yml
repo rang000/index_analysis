@@ -21,3 +21,4 @@ jobs:
             - run: echo "${{inputs.greeting}}"
             - run: ls
             - run: pwd
+            - run: echo "contexts`:` {{github.actor}}"
