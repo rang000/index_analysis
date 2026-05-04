@@ -15,6 +15,7 @@ jobs:
           print env
           echo "::endgroup::"
           echo "::debug:: this is debug comment"
+      # - run: echo "hoge"
       # # Chapter3
       # - run: echo "Hello world"
       # - uses: actions/checkout@v4
