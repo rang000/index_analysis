@@ -21,7 +21,7 @@ runs:
       env: 
         CONTEXT: ${{toJson(github)}}
       shell: bash
-    - id: steps.current.ouputs.date
+    - id: current
       run: echo "date=$(date)" >> "${GITHUB_OUTPUT}"
       shell: bash
 
