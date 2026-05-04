@@ -20,7 +20,7 @@ jobs:
       - name: share vars
         id: source
         run: echo "result=Hello" >> "${GITHUB_OUTPUT}"
-      - run: echo "${{toJSON(steps.*.ouputs)}}"
+      - run: echo "${{toJSON(steps.*.outputs)}}"
       - run: echo "${RESULT}"
         env: 
           RESULT: ${{steps.source.outputs.result}}
