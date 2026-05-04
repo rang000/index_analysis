@@ -26,7 +26,7 @@ jobs:
       - name: show outputs
         run: echo "${{toJSON(steps.*.outputs)}}"
       - name: show steps contents
-        run: echo "${{toJSON(steps.*)}}"
+        run: echo "${{toJSON(steps)}}"
       - run: echo "${RESULT}"
         env: 
           RESULT: ${{steps.source.outputs.result}}
