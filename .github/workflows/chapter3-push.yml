@@ -1,4 +1,4 @@
-name: Chapter3
+name: chapter3-push
 run-name: Run by @${{ github.actor }}
 on: push
 env: 
