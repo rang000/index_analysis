@@ -1,4 +1,4 @@
-name: chapter3-push
+name: push-test
 run-name: Run by @${{ github.actor }}
 on: push
 env: 
@@ -8,32 +8,40 @@ jobs:
   generate-func:
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Hello world"
-      - uses: actions/checkout@v4
-      - run: printenv | grep '_FUNC'
-      - run: echo VARS "${VARS_JSON} HASH ${HASH}"
-        env: 
-          HASH:  ${{hashFiles('.github/workflows/*.yml')}}
-      # share vars
-      - run: export TMP="hoge"
-      - run: echo "${TMP}"
-      - name: share vars
-        id: source
-        run: echo "result=Hello" >> "${GITHUB_OUTPUT}"
+      - run: |
+          echo "hoge"
+          pwd
+          echo "::group::Show envs"
+          print env
+          echo "::endgroup::"
+          echo "::debug:: this is debug comment"
+      # # Chapter3
+      # - run: echo "Hello world"
+      # - uses: actions/checkout@v4
+      # - run: printenv | grep '_FUNC'
+      # - run: echo VARS "${VARS_JSON} HASH ${HASH}"
+      #   env: 
+      #     HASH:  ${{hashFiles('.github/workflows/*.yml')}}
+      # # share vars
+      # - run: export TMP="hoge"
+      # - run: echo "${TMP}"
+      # - name: share vars
+      #   id: source
+      #   run: echo "result=Hello" >> "${GITHUB_OUTPUT}"
       
-      - id: hoge
-        run: echo "result=hogehoge" >> "${GITHUB_OUTPUT}"
-      - name: show outputs
-        run: echo "${{toJSON(steps.*.outputs)}}"
-      - name: show steps contents
-        run: echo "${{toJSON(steps)}}"
-      - run: echo "${RESULT}"
-        env: 
-          RESULT: ${{steps.source.outputs.result}}
-      # # conditional branch
-      # - name: intentionally fail
-      #   run : exit 1
-      # - run: echo "failuer without conditional"
-      # - run: echo "failuer with conditional"
-      #   if: ${{failure()}}
+      # - id: hoge
+      #   run: echo "result=hogehoge" >> "${GITHUB_OUTPUT}"
+      # - name: show outputs
+      #   run: echo "${{toJSON(steps.*.outputs)}}"
+      # - name: show steps contents
+      #   run: echo "${{toJSON(steps)}}"
+      # - run: echo "${RESULT}"
+      #   env: 
+      #     RESULT: ${{steps.source.outputs.result}}
+      # # # conditional branch
+      # # - name: intentionally fail
+      # #   run : exit 1
+      # # - run: echo "failuer without conditional"
+      # # - run: echo "failuer with conditional"
+      # #   if: ${{failure()}}
       
