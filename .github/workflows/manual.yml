@@ -7,6 +7,13 @@ on:
                 default: what's up
                 required: true
                 description: a cheerful word
+            choice:
+                type: choice
+                options:
+                    - info
+                    - warn
+                    - error
+                required: false
 jobs:
     run:
         runs-on: ubuntu-latest
