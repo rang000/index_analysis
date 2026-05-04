@@ -1,5 +1,5 @@
 name: Chapter3
-run-name: Run by @"${GITHUB_ACTOR}"
+run-name: Run by @${{ github.actor }}
 on: push
 env: 
   FORMAT_FUNC: ${{format('{0}, {1}.', 'Hi', 'world')}}
@@ -20,14 +20,14 @@ jobs:
       - name: share vars
         id: source
         run: echo "result=Hello" >> "${GITHUB_OUTPUT}"
-      - run: echo "${{steps.*.ouputs}}"
+      - run: echo "${{toJSON(steps.*.ouputs)}}"
       - run: echo "${RESULT}"
         env: 
           RESULT: ${{steps.source.outputs.result}}
-      # conditional branch
-      - name: intentionally fail
-        run : exit 1
-      - run: echo "failuer without conditional"
-      - run: echo "failuer with conditional"
-        if: ${{failure()}}
+      # # conditional branch
+      # - name: intentionally fail
+      #   run : exit 1
+      # - run: echo "failuer without conditional"
+      # - run: echo "failuer with conditional"
+      #   if: ${{failure()}}
       
