@@ -22,6 +22,7 @@ jobs:
     manual-run:
         runs-on: ubuntu-latest
         steps:
+            - run: printenv
             - run: echo "${{inputs.greeting}}"
             - run: ls
             - run: pwd
