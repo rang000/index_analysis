@@ -18,8 +18,8 @@ jobs:
           echo "::debug:: this is debug comment"
       - run: |
           echo "::error::This is an error."
-          echo "::waring::This is an warning."
-          echo "::ernoticeror::This is an notice."
+          echo "::warning::This is an warning."
+          echo "::notice::This is an notice."
       # - run: echo "hoge"
       # # Chapter3
       # - run: echo "Hello world"
