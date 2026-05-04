@@ -12,7 +12,7 @@ jobs:
           echo "hoge"
           pwd
           echo "::group::Show envs"
-          print env
+          printenv
           echo "::endgroup::"
           echo "::debug:: this is debug comment"
       # - run: echo "hoge"
