@@ -8,40 +8,29 @@ import requests
 import streamlit as st
 import yfinance as yf
 
+from config.loader import load_settings
+from domain.gamma import black_scholes_gamma
+from domain.pain_point import add_trend_position, weighted_pain_point
 
-DEFAULT_TICKER = "^N225"
-INDEX_OPTIONS = {
-    "Nikkei 225": "^N225",
-    "S&P 500": "^GSPC",
-    "NASDAQ Composite": "^IXIC",
-    "NASDAQ 100": "^NDX",
-    "Dow Jones": "^DJI",
-    "TOPIX": "^TOPX",
-    "FTSE 100": "^FTSE",
-    "DAX": "^GDAXI",
-    "Hang Seng": "^HSI",
-}
-START_DATE = "2020-01-01"
-END_DATE = "2026-05-01"
-PAIN_WINDOW_YEARS = 2
-QUARTER_MONTHS = 3
-PAIN_COHORT_COUNT = 4
-TREND_LOOKBACKS = (20, 60, 120, 250)
-TREND_VOL_WINDOW = 60
-TREND_SIGNAL_SCALE = 1.5
-OPTION_TICKER_DEFAULTS = {
-    "Nikkei 225": "EWJ",
-    "S&P 500": "SPY",
-    "NASDAQ Composite": "QQQ",
-    "NASDAQ 100": "QQQ",
-    "Dow Jones": "DIA",
-    "TOPIX": "EWJ",
-    "FTSE 100": "EWU",
-    "DAX": "EWG",
-    "Hang Seng": "EWH",
-}
-CONTRACT_SIZE = 100
-RISK_FREE_RATE = 0.04
+from use_cases.calculate_pain_points import calculate_pain_points
+
+settings = load_settings()
+
+DEFAULT_TICKER = settings["default_ticker"]
+INDEX_OPTIONS = settings["index_options"]
+START_DATE = settings["start_date"]
+END_DATE = settings["end_date"]
+
+PAIN_WINDOW_YEARS = settings["pain_window_years"]
+QUARTER_MONTHS = settings["quarter_months"]
+PAIN_COHORT_COUNT = settings["pain_cohort_count"]
+TREND_LOOKBACKS = tuple(settings["trend_lookbacks"])
+
+TREND_VOL_WINDOW = settings["trend_vol_window"]
+TREND_SIGNAL_SCALE = settings["trend_signal_scale"]
+OPTION_TICKER_DEFAULTS = settings["option_ticker_defaults"]
+CONTRACT_SIZE = settings["contract_size"]
+RISK_FREE_RATE = settings["risk_free_rate"]
 
 
 @st.cache_data(show_spinner="Market data loading...")
@@ -171,20 +160,6 @@ def format_number(value: float | int | None, digits: int = 2) -> str:
         return "-"
     return f"{value:,.{digits}f}"
 
-
-def norm_pdf(value: float) -> float:
-    return math.exp(-0.5 * value * value) / math.sqrt(2 * math.pi)
-
-
-def black_scholes_gamma(spot: float, strike: float, volatility: float, time_to_expiry: float) -> float:
-    if spot <= 0 or strike <= 0 or volatility <= 0 or time_to_expiry <= 0:
-        return 0.0
-    d1 = (math.log(spot / strike) + (RISK_FREE_RATE + 0.5 * volatility * volatility) * time_to_expiry) / (
-        volatility * math.sqrt(time_to_expiry)
-    )
-    return norm_pdf(d1) / (spot * volatility * math.sqrt(time_to_expiry))
-
-
 def build_gamma_profile(
     option_data: pd.DataFrame,
     spot: float,
@@ -261,95 +236,6 @@ def parse_date_list(value: str) -> list[pd.Timestamp]:
             continue
         dates.append(pd.Timestamp(parsed).normalize())
     return dates
-
-
-def add_trend_position(data: pd.DataFrame) -> pd.DataFrame:
-    result = data.sort_values("Date").copy()
-    close = result["Close"].astype(float)
-    returns = close.pct_change()
-    vol = returns.rolling(TREND_VOL_WINDOW, min_periods=20).std()
-
-    signals = []
-    for lookback in TREND_LOOKBACKS:
-        momentum = close.pct_change(lookback)
-        zscore = momentum / (vol * lookback**0.5)
-        signals.append((zscore / TREND_SIGNAL_SCALE).clip(-1, 1))
-
-    signal_frame = pd.concat(signals, axis=1)
-    result["TrendPosition"] = signal_frame.mean(axis=1).clip(-1, 1).fillna(0)
-    return result
-
-
-def weighted_pain_point(cohort: pd.DataFrame) -> pd.DataFrame:
-    position = cohort["TrendPosition"].clip(lower=0).fillna(0)
-    additions = position.diff().clip(lower=0).fillna(position)
-
-    # If the model was already long and does not add, keep a minimal initial entry
-    # so every cohort has a readable reference level.
-    if additions.sum() == 0 and position.iloc[0] > 0:
-        additions.iloc[0] = position.iloc[0]
-
-    weighted_cost = (additions * cohort["Close"]).cumsum()
-    cumulative_additions = additions.cumsum()
-    pain_point = weighted_cost / cumulative_additions.replace(0, pd.NA)
-
-    fallback = cohort["Close"].expanding().mean()
-    cohort = cohort.copy()
-    cohort["PainPoint"] = pain_point.ffill().fillna(fallback)
-    cohort["PositionScore"] = cohort["TrendPosition"]
-    cohort["PositionAdd"] = additions
-    return cohort
-
-
-def build_pain_points(
-    data: pd.DataFrame,
-    price_start: pd.Timestamp,
-    price_end: pd.Timestamp,
-    cohort_starts: list[pd.Timestamp],
-) -> tuple[pd.DataFrame, pd.DataFrame]:
-    data = add_trend_position(data)
-    price_start = clamp_date(price_start, data["Date"].min(), data["Date"].max())
-    price_end = clamp_date(price_end, data["Date"].min(), data["Date"].max())
-    if price_start > price_end:
-        return pd.DataFrame(), pd.DataFrame()
-
-    window = data[(data["Date"] >= price_start) & (data["Date"] <= price_end)].copy()
-    if window.empty:
-        return pd.DataFrame(), pd.DataFrame()
-
-    cohort_dates = []
-    for cohort_start in cohort_starts:
-        if cohort_start > price_end:
-            continue
-        trading_date = nearest_trading_date(window, max(cohort_start, price_start))
-        if trading_date is not None and trading_date not in cohort_dates:
-            cohort_dates.append(trading_date)
-
-    pain_frames = []
-    for cohort_date in cohort_dates:
-        cohort = window[window["Date"] >= cohort_date][["Date", "Close", "TrendPosition"]].copy()
-        if cohort.empty:
-            continue
-        cohort = weighted_pain_point(cohort)
-        cohort["Cohort"] = f"from {cohort_date.strftime('%b %Y')}"
-        cohort["CohortDate"] = cohort_date
-        pain_frames.append(cohort[["Date", "PainPoint", "PositionScore", "PositionAdd", "Cohort", "CohortDate"]])
-
-    if not pain_frames:
-        return window, pd.DataFrame()
-
-    pain_data = pd.concat(pain_frames, ignore_index=True)
-    latest_close = window.dropna(subset=["Close"]).iloc[-1]["Close"]
-    latest_date = window.dropna(subset=["Close"]).iloc[-1]["Date"]
-    labels = pain_data[pain_data["Date"] == latest_date].copy()
-    labels["Distance"] = latest_close - labels["PainPoint"]
-    labels["DistancePct"] = labels["Distance"] / labels["PainPoint"] * 100
-    labels["Label"] = labels.apply(
-        lambda row: f"{row['Cohort']}  {row['PainPoint']:,.0f}  {row['DistancePct']:+.1f}%",
-        axis=1,
-    )
-    return window, pain_data.merge(labels[["Cohort", "Distance", "DistancePct", "Label"]], on="Cohort", how="left")
-
 
 def selected_column_values(data: pd.DataFrame, selected_rows: list[int], selected_column: str) -> pd.Series:
     if not selected_rows or selected_column not in data.columns:
@@ -967,7 +853,7 @@ def main() -> None:
     else:
         cohort_starts = parse_date_list(custom_cohort_text)
 
-    pain_window, pain_data = build_pain_points(
+    pain_window, pain_data = calculate_pain_points(
         data,
         pd.Timestamp(pain_price_start),
         pd.Timestamp(pain_price_end),
