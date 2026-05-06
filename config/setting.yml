@@ -1,0 +1,42 @@
+default_ticker: "^N225"
+
+index_options:
+  Nikkei 225: "^N225"
+  S&P 500: "^GSPC"
+  NASDAQ Composite: "^IXIC"
+  NASDAQ 100: "^NDX"
+  Dow Jones: "^DJI"
+  TOPIX: "^TOPX"
+  FTSE 100: "^FTSE"
+  DAX: "^GDAXI"
+  Hang Seng: "^HSI"
+
+start_date: "2020-01-01"
+end_date: "2026-05-01"
+
+pain_window_years: 2
+quarter_months: 3
+pain_cohort_count: 4
+
+trend_lookbacks:
+  - 20
+  - 60
+  - 120
+  - 250
+
+trend_vol_window: 60
+trend_signal_scale: 1.5
+
+option_ticker_defaults:
+  Nikkei 225: "EWJ"
+  S&P 500: "SPY"
+  NASDAQ Composite: "QQQ"
+  NASDAQ 100: "QQQ"
+  Dow Jones: "DIA"
+  TOPIX: "EWJ"
+  FTSE 100: "EWU"
+  DAX: "EWG"
+  Hang Seng: "EWH"
+
+contract_size: 100
+risk_free_rate: 0.04
