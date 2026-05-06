@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 
-from domain.pain_point import add_trend_position, weighted_pain_point
+from index_analysis.domain.pain_point import add_trend_position, weighted_pain_point
 
 
 def clamp_date(
@@ -28,8 +28,16 @@ def calculate_pain_points(
     price_start: pd.Timestamp,
     price_end: pd.Timestamp,
     cohort_starts: list[pd.Timestamp],
+    trend_lookbacks: tuple[int, ...],
+    trend_vol_window: int,
+    trend_signal_scale: float,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    data = add_trend_position(data)
+    data = add_trend_position(
+        data,
+        trend_lookbacks,
+        trend_vol_window,
+        trend_signal_scale,
+    )
 
     price_start = clamp_date(price_start, data["Date"].min(), data["Date"].max())
     price_end = clamp_date(price_end, data["Date"].min(), data["Date"].max())

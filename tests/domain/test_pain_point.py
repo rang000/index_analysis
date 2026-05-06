@@ -1,6 +1,6 @@
 import pandas as pd
 
-from domain.pain_point import add_trend_position, weighted_pain_point
+from index_analysis.domain.pain_point import add_trend_position, weighted_pain_point
 
 
 def test_add_trend_position_adds_column():
@@ -11,7 +11,12 @@ def test_add_trend_position_adds_column():
         }
     )
 
-    result = add_trend_position(data)
+    result = add_trend_position(
+        data,
+        lookbacks=(20, 60, 120, 250),
+        vol_window=60,
+        signal_scale=1.5,
+    )
 
     assert "TrendPosition" in result.columns
     assert result["TrendPosition"].between(-1, 1).all()

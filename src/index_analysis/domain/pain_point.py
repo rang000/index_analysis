@@ -1,26 +1,24 @@
 from __future__ import annotations
-from config.loader import load_settings
 
 import pandas as pd
 
 
-settings = load_settings()
-
-TREND_LOOKBACKS = tuple(settings["trend_lookbacks"])
-TREND_VOL_WINDOW = settings["trend_vol_window"]
-TREND_SIGNAL_SCALE = settings["trend_signal_scale"]
-
-def add_trend_position(data: pd.DataFrame) -> pd.DataFrame:
+def add_trend_position(
+    data: pd.DataFrame,
+    lookbacks: tuple[int, ...],
+    vol_window: int,
+    signal_scale: float,
+) -> pd.DataFrame:
     result = data.sort_values("Date").copy()
     close = result["Close"].astype(float)
     returns = close.pct_change()
-    vol = returns.rolling(TREND_VOL_WINDOW, min_periods=20).std()
+    vol = returns.rolling(vol_window, min_periods=20).std()
 
     signals = []
-    for lookback in TREND_LOOKBACKS:
+    for lookback in lookbacks:
         momentum = close.pct_change(lookback)
         zscore = momentum / (vol * lookback**0.5)
-        signals.append((zscore / TREND_SIGNAL_SCALE).clip(-1, 1))
+        signals.append((zscore / signal_scale).clip(-1, 1))
 
     signal_frame = pd.concat(signals, axis=1)
     result["TrendPosition"] = signal_frame.mean(axis=1).clip(-1, 1).fillna(0)
